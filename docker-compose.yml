@@ -1,0 +1,66 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 11111111
+      POSTGRES_DB: jr_agro_dev
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - '55432:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    restart: unless-stopped
+    ports:
+      - '65432:6432'
+    volumes:
+      - ./apps/backend/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./apps/backend/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    depends_on:
+      - db
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    ports:
+      - '5000:5000'
+    env_file:
+      - ./apps/backend/.env
+    environment:
+      DATABASE_CONNECTION_STRING: postgresql://postgres:11111111@db:5432/jr_agro_dev?schema=public
+    volumes:
+      - ./apps/backend:/workspace/apps/backend
+      - ./apps/backend/.env:/workspace/apps/backend/.env:ro
+      - backend-node-modules:/workspace/apps/backend/node_modules
+    depends_on:
+      - db
+      - pgbouncer
+
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    ports:
+      - "8081:8081"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      - EXPO_PUBLIC_API_URL=http://host.docker.internal:5000/api
+      - EXPO_DEVTOOLS_LISTEN_ADDRESS=0.0.0.0
+      - EXPO_PACKAGER_HOSTNAME=0.0.0.0
+      - HOST=0.0.0.0
+      - PORT=19006
+      - NODE_ENV=development
+    volumes:
+      - /app/node_modules
+    depends_on:
+      - backend
+
+volumes:
+  db-data:
+  backend-node-modules:
+  frontend-node-modules:

@@ -1,0 +1,19 @@
+{
+  "name": "jr-agro-marketplace",
+  "private": true,
+  "version": "0.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "pnpm -r --filter \"apps/*\" --filter \"packages/*\" run build",
+    "build:backend": "pnpm -w -F jr-agro-marketplace-backend build",
+    "build:frontend": "pnpm -w -F jr-agro-marketplace-frontend build",
+    "build:shared-types": "pnpm -w -F @jr-agro/shared-types build",
+    "dev": "concurrently \"pnpm -w -F jr-agro-marketplace-backend dev\" \"pnpm -w -F jr-agro-marketplace-frontend start\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.0"
+  }
+}

@@ -1,0 +1,13 @@
+# Root workspace artifacts
+node_modules
+**/node_modules
+**/dist
+**/logs
+.git
+.gitignore
+**/.git
+
+# Local editor artifacts
+.expo
+.vscode
+.DS_Store
