@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 11111111
+      POSTGRES_DB: jr_agro_dev
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - '55532:5432'
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    ports:
+      - '5000:5000'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - pgbouncer
+    environment:
+      - DATABASE_CONNECTION_STRING=postgresql://postgres:11111111@pgbouncer:6432/jr_agro_dev?schema=public
+      - DATABASE_CONNECTION_LIMIT=10
+      - DISABLE_RATE_LIMIT=true
+
+  pgbouncer:
+    image: edoburu/pgbouncer:latest
+    restart: unless-stopped
+    ports:
+      - '16432:6432'
+    volumes:
+      - ./pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+      - ./pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+    depends_on:
+      - db
+
+volumes:
+  db-data:
